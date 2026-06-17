@@ -1,107 +1,208 @@
+
+
 import React, { useEffect, useState } from "react";
+
 import { getDashboardSummary } from "../services/dashboardService";
+
+import TamilNaduChoropleth from "../components/TamilNaduChoropleth";
+
 import "../styles/dashboard.css";
-import TamilNaduOutbreakMap from "../components/TamilNaduOutbreakMap";
-import ValidationScorecard from "../components/ValidationScorecard";
-import ShapFeatureChart from "../components/ShapFeatureChart";
-import DataSourcePanel from "../components/DataSourcePanel";
-import ASHAAlertGenerator from "../components/ASHAAlertGenerator";
+
+
 
 const Dashboard = () => {
-  const [summary, setSummary] = useState(null);
-  const [topRiskDistricts, setTopRiskDistricts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [
-  selectedDistrict,
-  setSelectedDistrict
-] = useState(
-  "Chennai"
-);
 
-  useEffect(() => {
-    loadDashboard();
-    const timer = setInterval(
-      loadDashboard,
-      30000
-    );
-    return () => clearInterval(timer);
-  }, []);
+  const [summary, setSummary] = useState({
+
+    totalDistricts: 0,
+
+    totalPredictions: 0,
+
+    highRiskCount: 0,
+
+    mediumRiskCount: 0,
+
+    lowRiskCount: 0,
+
+    last_updated: null,
+
+  });
+
+
+
+  const [allDistricts, setAllDistricts] = useState([]);
+
+  const [topRiskDistricts, setTopRiskDistricts] =
+
+    useState([]);
+
+
+
+  const [loading, setLoading] =
+
+    useState(true);
+
+
+
+  const [error, setError] =
+
+    useState("");
+
+
 
   const loadDashboard = async () => {
-  try {
-    setLoading(true);
-    setError("");
 
-    const response =
-      await getDashboardSummary();
+    try {
 
-    console.log(
-      "Dashboard Response:",
-      response
-    );
+      setLoading(true);
 
-    if (
-      response &&
-      response.summary
-    ) {
+      setError("");
+
+
+
+      const response =
+
+        await getDashboardSummary();
+
+
+
       console.log(
-        "Summary Data:",
-        response.summary
+
+        "Dashboard Response:",
+
+        response
+
       );
+
+
+
+      if (!response?.success) {
+
+        throw new Error(
+
+          "Failed to load dashboard"
+
+        );
+
+      }
+
+
 
       setSummary({
+
         totalDistricts:
-          response.summary
-            .totalDistricts || 0,
+
+          response.summary?.totalDistricts || 0,
+
+
 
         totalPredictions:
-          response.summary
-            .totalPredictions || 0,
+
+          response.summary?.totalPredictions || 0,
+
+
 
         highRiskCount:
-          response.summary
-            .highRiskCount || 0,
+
+          response.summary?.highRiskCount || 0,
+
+
 
         mediumRiskCount:
-          response.summary
-            .mediumRiskCount || 0,
+
+          response.summary?.mediumRiskCount || 0,
+
+
 
         lowRiskCount:
-          response.summary
-            .lowRiskCount || 0,
+
+          response.summary?.lowRiskCount || 0,
+
+
 
         last_updated:
-          response.summary
-            .last_updated,
+
+          response.summary?.last_updated || null,
+
       });
 
-      setTopRiskDistricts(
-        response.top_risk_districts ||
-          []
-      );
-    } else {
-      setError(
-        "No dashboard data received"
-      );
-    }
-  } catch (err) {
-    console.error(err);
 
-    setError(
-      "Failed to load dashboard"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+
+      setAllDistricts(
+
+        response.all_districts || []
+
+      );
+
+
+
+      setTopRiskDistricts(
+
+        response.top_risk_districts || []
+
+      );
+
+    } catch (err) {
+
+      console.error(
+
+        "Dashboard Error:",
+
+        err
+
+      );
+
+
+
+      setError(
+
+        err.message ||
+
+          "Failed to load dashboard"
+
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+
+
+  useEffect(() => {
+
+    loadDashboard();
+
+
+
+    const interval =
+
+      setInterval(
+
+        loadDashboard,
+
+        30000
+
+      );
+
+
+
+    return () =>
+
+      clearInterval(interval);
+
+  }, []);
+
 
 
   const getRiskClass = (risk) => {
 
     switch (
 
-      risk?.toUpperCase()
+      String(risk || "").toUpperCase()
 
     ) {
 
@@ -159,280 +260,374 @@ const Dashboard = () => {
 
 
 
- return (
-  <div className="dashboard-container">
+  return (
 
-    {/* Header */}
+    <div className="dashboard-container">
 
-    <div className="dashboard-header">
 
-      <div>
 
-        <h1>
-          Seasonal Disease Surge Prediction System
-        </h1>
+      <div className="dashboard-header">
 
-        <p>
-          AI Powered Early Warning &
-          Explainable Disease Analytics
-        </p>
+        <div>
+
+          <h1>
+
+            Seasonal Disease Surge Prediction
+
+          </h1>
+
+
+
+          <p>
+
+            AI Powered Early Warning &
+
+            Explainable Disease Analytics
+
+          </p>
+
+        </div>
+
+
+
+        <button
+
+          onClick={loadDashboard}
+
+          className="refresh-btn"
+
+        >
+
+          Refresh
+
+        </button>
 
       </div>
 
-      <button
-        onClick={loadDashboard}
-        className="refresh-btn"
+
+
+      <div className="stats-grid">
+
+
+
+        <div className="stat-card blue">
+
+          <h4>Total Districts</h4>
+
+          <h2>
+
+            {summary.totalDistricts}
+
+          </h2>
+
+        </div>
+
+
+
+        <div className="stat-card cyan">
+
+          <h4>Total Predictions</h4>
+
+          <h2>
+
+            {summary.totalPredictions}
+
+          </h2>
+
+        </div>
+
+
+
+        <div className="stat-card red">
+
+          <h4>High Risk</h4>
+
+          <h2>
+
+            {summary.highRiskCount}
+
+          </h2>
+
+        </div>
+
+
+
+        <div className="stat-card orange">
+
+          <h4>Medium Risk</h4>
+
+          <h2>
+
+            {summary.mediumRiskCount}
+
+          </h2>
+
+        </div>
+
+
+
+        <div className="stat-card green">
+
+          <h4>Low Risk</h4>
+
+          <h2>
+
+            {summary.lowRiskCount}
+
+          </h2>
+
+        </div>
+
+
+
+      </div>
+
+
+
+      <div
+
+        style={{
+
+          display: "grid",
+
+          gridTemplateColumns:
+
+            "1.2fr 1fr",
+
+          gap: "20px",
+
+          marginTop: "25px",
+
+        }}
+
       >
-        Refresh
-      </button>
 
-    </div>
+        <div className="section-card">
 
-    {/* Statistics */}
+          <h2
 
-    <div className="stats-grid">
+            style={{
 
-      <div className="stat-card blue">
-        <h4>Total Districts</h4>
-        <h2>
-          {summary?.totalDistricts || 0}
-        </h2>
-      </div>
+              marginBottom: "15px",
 
-      <div className="stat-card cyan">
-        <h4>Total Predictions</h4>
-        <h2>
-          {summary?.totalPredictions || 0}
-        </h2>
-      </div>
+            }}
 
-      <div className="stat-card red">
-        <h4>High Risk</h4>
-        <h2>
-          {summary?.highRiskCount || 0}
-        </h2>
-      </div>
+          >
 
-      <div className="stat-card orange">
-        <h4>Medium Risk</h4>
-        <h2>
-          {summary?.mediumRiskCount || 0}
-        </h2>
-      </div>
+            Tamil Nadu Risk Map
 
-      <div className="stat-card green">
-        <h4>Low Risk</h4>
-        <h2>
-          {summary?.lowRiskCount || 0}
-        </h2>
-      </div>
+          </h2>
 
-    </div>
 
-    {/* TN Map */}
 
-    <div
-      style={{
-        marginTop: "25px"
-      }}
-    >
+          <TamilNaduChoropleth
 
-      <TamilNaduOutbreakMap
-        onDistrictSelect={
-          setSelectedDistrict
-        }
-      />
+            districtsData={
 
-    </div>
+              allDistricts
 
-    {/* Validation + SHAP */}
+            }
 
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(500px,1fr))",
-        gap: "20px",
-        marginTop: "25px"
-      }}
-    >
+          />
 
-      <ValidationScorecard />
+        </div>
 
-      <ShapFeatureChart
-        selectedDistrict={
-          selectedDistrict
-        }
-      />
 
-    </div>
 
-    {/* Top Risk Table */}
+        <div className="section-card">
 
-    <div
-      className="section-card"
-      style={{
-        marginTop: "25px"
-      }}
-    >
+          <h2>
 
-      <h2>
-        Top Risk Districts
-      </h2>
+            Top Risk Districts
 
-      <table className="custom-table">
+          </h2>
 
-        <thead>
 
-          <tr>
-            <th>District</th>
-            <th>Disease</th>
-            <th>Risk</th>
-            <th>Probability</th>
-            <th>Expected Cases</th>
-          </tr>
 
-        </thead>
+          <table className="custom-table">
 
-        <tbody>
+            <thead>
 
-          {topRiskDistricts.length >
-          0 ? (
+              <tr>
 
-            topRiskDistricts.map(
-              (
-                district,
-                index
-              ) => (
+                <th>District</th>
 
-                <tr key={index}>
+                <th>Disease</th>
 
-                  <td>
-                    {
-                      district.district
-                    }
-                  </td>
+                <th>Risk</th>
 
-                  <td>
-                    {
-                      district.disease
-                    }
-                  </td>
+                <th>Probability</th>
 
-                  <td>
+                <th>Cases</th>
 
-                    <span
-                      className={`risk-badge ${getRiskClass(
-                        district.risk_level
-                      )}`}
-                    >
+              </tr>
 
-                      {
-                        district.risk_level
-                      }
+            </thead>
 
-                    </span>
 
-                  </td>
 
-                  <td>
+            <tbody>
 
-                    {(
-                      district.surge_probability *
-                      100
-                    ).toFixed(
-                      0
-                    )}
-                    %
+              {topRiskDistricts.length >
 
-                  </td>
+              0 ? (
 
-                  <td>
+                topRiskDistricts.map(
 
-                    {
-                      district.expected_cases_2w
-                    }
+                  (
+
+                    district,
+
+                    index
+
+                  ) => (
+
+                    <tr key={index}>
+
+                      <td>
+
+                        {
+
+                          district.district
+
+                        }
+
+                      </td>
+
+
+
+                      <td>
+
+                        {district.disease ||
+
+                          "Dengue"}
+
+                      </td>
+
+
+
+                      <td>
+
+                        <span
+
+                          className={`risk-badge ${getRiskClass(
+
+                            district.risk_level
+
+                          )}`}
+
+                        >
+
+                          {
+
+                            district.risk_level
+
+                          }
+
+                        </span>
+
+                      </td>
+
+
+
+                      <td>
+
+                        {(
+
+                          Number(
+
+                            district.surge_probability || 0
+
+                          ) * 100
+
+                        ).toFixed(1)}
+
+                        %
+
+                      </td>
+
+
+
+                      <td>
+
+                        {district.expected_cases_2w || 0}
+
+                      </td>
+
+                    </tr>
+
+                  )
+
+                )
+
+              ) : (
+
+                <tr>
+
+                  <td colSpan="5">
+
+                    No Data Available
 
                   </td>
 
                 </tr>
 
-              )
-            )
+              )}
 
-          ) : (
+            </tbody>
 
-            <tr>
+          </table>
 
-              <td colSpan="5">
-                No Data Found
-              </td>
+        </div>
 
-            </tr>
+      </div>
 
-          )}
 
-        </tbody>
 
-      </table>
+      <div
 
-    </div>
+        className="last-update"
 
-    {/* Sources + Alerts */}
+        style={{
 
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(500px,1fr))",
-        gap: "20px",
-        marginTop: "25px"
-      }}
-    >
+          marginTop: "25px",
 
-      <DataSourcePanel />
+        }}
 
-      <ASHAAlertGenerator
-        selectedDistrict={
-          selectedDistrict
-        }
-      />
+      >
 
-    </div>
+        Last Updated :
 
-    {/* Footer */}
+        {" "}
 
-    <div
-      className="last-update"
-    >
+        {summary.last_updated
 
-      Last Updated :
+          ? new Date(
 
-      {" "}
+              summary.last_updated
 
-      {summary?.last_updated
-        ? new Date(
-            summary.last_updated
-          ).toLocaleString()
-        : "N/A"}
+            ).toLocaleString()
+
+          : "N/A"}
+
+      </div>
+
+
+
+      <div className="data-source-footer">
+
+        IMD | ERA5 | IDSP | EMRI 108 |
+
+        PHC Records
+
+      </div>
 
     </div>
 
-    <div
-      className="data-source-footer"
-    >
-
-      IMD |
-      ERA5 |
-      IDSP |
-      EMRI 108 |
-      PHC Records
-
-    </div>
-
-  </div>
-);
+  );
 
 };
+
+
 
 export default Dashboard;

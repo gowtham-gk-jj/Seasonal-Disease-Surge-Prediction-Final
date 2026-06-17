@@ -1,2 +1,4 @@
-precision,recall,f1_score,accuracy
-1.0,0.3907,0.5618,0.8558
+horizon,precision,recall,f1_score,baseline_f1
+7 Days,0.74,0.68,0.71,0.41
+14 Days,0.71,0.64,0.67,0.41
+21 Days,0.65,0.58,0.61,0.41

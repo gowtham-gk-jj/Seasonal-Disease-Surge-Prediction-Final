@@ -7,21 +7,22 @@ import Dashboard from "./pages/Dashboard";
 import Prediction from "./pages/Prediction";
 import DistrictAnalysis from "./pages/DistrictAnalysis";
 import ResourcePlanning from "./pages/ResourcePlanning";
-import Alerts from "./pages/Alerts";
+import Alerts from "./components/ASHAAlertGenerator";
 import About from "./pages/About";
 
+/* NEW COMPONENTS */
+import ValidationScorecard from "./components/ValidationScorecard";
+import ShapFeatureChart from "./components/ShapFeatureChart";
+import DataSourcePanel from "./components/DataSourcePanel";
+
 function App() {
-  const [activeTab, setActiveTab] =
-    useState("dashboard");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  const [time, setTime] =
-    useState(new Date());
+  const [time, setTime] = useState(new Date());
 
-  const [predictionData, setPredictionData] =
-    useState([]);
+  const [predictionData, setPredictionData] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,14 +38,11 @@ function App() {
 
   const loadPredictions = async () => {
     try {
-      const response =
-        await axios.get(
-          "http://localhost:5000/api/predictions"
-        );
-
-      setPredictionData(
-        response.data.data || []
+      const response = await axios.get(
+        "http://localhost:5000/api/predictions"
       );
+
+      setPredictionData(response.data.data || []);
     } catch (error) {
       console.error(
         "Prediction Load Error:",
@@ -55,17 +53,13 @@ function App() {
     }
   };
 
-  const highCount =
-    predictionData.filter(
-      (item) =>
-        item.risk_level === "HIGH"
-    ).length;
+  const highCount = predictionData.filter(
+    (item) => item.risk_level === "HIGH"
+  ).length;
 
-  const medCount =
-    predictionData.filter(
-      (item) =>
-        item.risk_level === "MEDIUM"
-    ).length;
+  const medCount = predictionData.filter(
+    (item) => item.risk_level === "MEDIUM"
+  ).length;
 
   const renderPage = () => {
     switch (activeTab) {
@@ -86,12 +80,21 @@ function App() {
           />
         );
 
+      case "validation-scorecard":
+        return <ValidationScorecard />;
+
+      case "shap-analysis":
+        return <ShapFeatureChart />;
+
       case "resource-planning":
         return (
           <ResourcePlanning
             data={predictionData}
           />
         );
+
+      case "data-sources":
+        return <DataSourcePanel />;
 
       case "alerts":
         return (

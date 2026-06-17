@@ -3,9 +3,12 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getValidationScorecard
+  getValidationScorecard,
 } = require("../controllers/validationController");
 
-router.get("/", getValidationScorecard);
+router.get(
+  "/",
+  getValidationScorecard
+);
 
 module.exports = router;

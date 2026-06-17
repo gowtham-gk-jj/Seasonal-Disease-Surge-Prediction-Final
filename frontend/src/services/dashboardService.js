@@ -15,91 +15,29 @@ const api = axios.create({
 // =====================================
 export const getDashboardSummary = async () => {
   try {
-    // Main Dashboard Summary
-    const summaryResponse = await api.get(
+    const response = await api.get(
       "/predictions/dashboard-summary"
     );
 
     console.log(
       "Dashboard Summary API:",
-      summaryResponse.data
+      response.data
     );
 
-    let topDistricts = [];
-    let highRiskPredictions = [];
-
-    // Top Districts
-    try {
-      const topResponse = await api.get(
-        "/predictions/top-districts"
-      );
-
-      console.log(
-        "Top Districts API:",
-        topResponse.data
-      );
-
-      topDistricts =
-        topResponse?.data?.data || [];
-    } catch (error) {
-      console.error(
-        "Top District API Failed:",
-        error
-      );
-    }
-
-    // High Risk Predictions
-    try {
-      const highResponse = await api.get(
-        "/predictions/high-risk"
-      );
-
-      console.log(
-        "High Risk API:",
-        highResponse.data
-      );
-
-      highRiskPredictions =
-        highResponse?.data?.data || [];
-    } catch (error) {
-      console.error(
-        "High Risk API Failed:",
-        error
-      );
-    }
-
-    const summary =
-      summaryResponse?.data?.data || {};
-
     return {
-      success: true,
+      success: response.data.success,
 
-      summary: {
-        totalPredictions:
-          summary.totalPredictions || 0,
+      summary:
+        response.data.summary || {},
 
-        totalDistricts:
-          summary.totalDistricts || 0,
-
-        highRiskCount:
-          summary.highRiskCount || 0,
-
-        mediumRiskCount:
-          summary.mediumRiskCount || 0,
-
-        lowRiskCount:
-          summary.lowRiskCount || 0,
-
-        last_updated:
-          summary.last_updated ||
-          new Date(),
-      },
+      all_districts:
+        response.data.all_districts || [],
 
       top_risk_districts:
-        topDistricts,
+        response.data.top_risk_districts || [],
 
       high_risk_predictions:
-        highRiskPredictions,
+        response.data.high_risk_predictions || [],
     };
   } catch (error) {
     console.error(
@@ -116,9 +54,10 @@ export const getDashboardSummary = async () => {
         highRiskCount: 0,
         mediumRiskCount: 0,
         lowRiskCount: 0,
-        last_updated: new Date(),
+        last_updated: null,
       },
 
+      all_districts: [],
       top_risk_districts: [],
       high_risk_predictions: [],
     };
@@ -144,7 +83,6 @@ export const getPredictions = async () => {
     return {
       success: false,
       data: [],
-      count: 0,
     };
   }
 };
@@ -186,7 +124,7 @@ export const getTopRiskDistricts =
       return response.data;
     } catch (error) {
       console.error(
-        "Top Risk District API Error:",
+        "Top Risk API Error:",
         error
       );
 
@@ -198,7 +136,7 @@ export const getTopRiskDistricts =
   };
 
 // =====================================
-// Get Predictions By District
+// Get District Predictions
 // =====================================
 export const getDistrictPredictions =
   async (district) => {
@@ -210,7 +148,7 @@ export const getDistrictPredictions =
       return response.data;
     } catch (error) {
       console.error(
-        "District Prediction API Error:",
+        "District API Error:",
         error
       );
 
