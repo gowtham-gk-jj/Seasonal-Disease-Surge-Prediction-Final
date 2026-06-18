@@ -175,4 +175,4 @@ exports.getRecentAlerts = async (
         "Failed to load alerts",
     });
   }
-};
+}; 
